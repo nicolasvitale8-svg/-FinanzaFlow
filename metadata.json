@@ -1,5 +1,7 @@
 {
   "name": "FinanzaFlow",
-  "description": "A comprehensive personal finance application to manage budgets, track transactions, and calculate investment returns (Jars) based on your spreadsheet logic.",
-  "requestFramePermissions": []
+  "description": "A comprehensive personal finance application with AI-powered OCR to manage budgets and investments.",
+  "requestFramePermissions": [
+    "camera"
+  ]
 }

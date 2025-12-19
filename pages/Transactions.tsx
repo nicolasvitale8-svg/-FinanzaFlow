@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useMemo } from 'react';
 import { StorageService } from '../services/storageService';
 import { Account, Category, Transaction, TransactionType } from '../types';
@@ -26,13 +27,19 @@ export const Transactions: React.FC = () => {
 
   useEffect(() => { loadData(); }, []);
 
-  const loadData = () => {
-    setTransactions(StorageService.getTransactions());
-    setAccounts(StorageService.getAccounts());
-    setCategories(StorageService.getCategories());
+  // Fixed: Updated to correctly await asynchronous calls to the storage service
+  const loadData = async () => {
+    const [t, a, c] = await Promise.all([
+      StorageService.getTransactions(),
+      StorageService.getAccounts(),
+      StorageService.getCategories()
+    ]);
+    setTransactions(t);
+    setAccounts(a);
+    setCategories(c);
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!formData.amount || !formData.categoryId || !formData.accountId) return;
     const newTransaction: Transaction = {
@@ -40,7 +47,8 @@ export const Transactions: React.FC = () => {
       categoryId: formData.categoryId!, accountId: formData.accountId!,
       description: formData.description || 'Sin descripción',
     };
-    StorageService.addTransaction(newTransaction);
+    // Fixed: Await storage operation before refreshing view
+    await StorageService.addTransaction(newTransaction);
     loadData();
     setIsModalOpen(false);
     setFormData({ date: new Date().toISOString().split('T')[0], type: TransactionType.OUT, amount: 0, description: '' });

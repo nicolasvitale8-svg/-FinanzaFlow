@@ -26,31 +26,41 @@ export const Accounts: React.FC = () => {
 
   useEffect(() => { loadData(); }, []);
 
-  const loadData = () => {
-    setAccounts(StorageService.getAccounts());
-    setAccountTypes(StorageService.getAccountTypes());
-    setMonthlyBalances(StorageService.getMonthlyBalances());
-    setRules(StorageService.getRules());
-    setCategories(StorageService.getCategories());
+  // Fixed loadData to await StorageService results
+  const loadData = async () => {
+    const [accs, types, balances, rs, cats] = await Promise.all([
+        StorageService.getAccounts(),
+        StorageService.getAccountTypes(),
+        StorageService.getMonthlyBalances(),
+        StorageService.getRules(),
+        StorageService.getCategories()
+    ]);
+    setAccounts(accs);
+    setAccountTypes(types);
+    setMonthlyBalances(balances);
+    setRules(rs);
+    setCategories(cats);
   };
 
-  const updateOpeningBalance = (accountId: string, amount: number) => {
+  // Fixed to call saveMonthlyBalances plural method and await it
+  const updateOpeningBalance = async (accountId: string, amount: number) => {
     let updated = [...monthlyBalances];
     const idx = updated.findIndex(mb => mb.accountId === accountId && mb.month === currentMonth && mb.year === currentYear);
     if (idx >= 0) updated[idx] = { ...updated[idx], amount };
     else updated.push({ id: crypto.randomUUID(), accountId, year: currentYear, month: currentMonth, amount });
-    StorageService.saveMonthlyBalances(updated); setMonthlyBalances(updated);
+    await StorageService.saveMonthlyBalances(updated); 
+    setMonthlyBalances(updated);
   };
 
-  const handleSaveAccount = (e: React.FormEvent) => {
+  const handleSaveAccount = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!editingAccount?.name || !editingAccount?.accountTypeId) return;
-    if (editingAccount.id) StorageService.updateAccount(editingAccount as Account);
-    else StorageService.addAccount({ id: crypto.randomUUID(), name: editingAccount.name, accountTypeId: editingAccount.accountTypeId, currency: editingAccount.currency || 'ARS', isActive: editingAccount.isActive !== undefined ? editingAccount.isActive : true });
+    if (editingAccount.id) await StorageService.updateAccount(editingAccount as Account);
+    else await StorageService.addAccount({ id: crypto.randomUUID(), name: editingAccount.name, accountTypeId: editingAccount.accountTypeId, currency: editingAccount.currency || 'ARS', isActive: editingAccount.isActive !== undefined ? editingAccount.isActive : true });
     loadData(); setIsAccModalOpen(false); setEditingAccount(null);
   };
 
-  const handleSaveRule = (e: React.FormEvent) => {
+  const handleSaveRule = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!editingRule?.pattern || !editingRule?.categoryId) return;
     const newRule: TextCategoryRule = {
@@ -62,7 +72,7 @@ export const Accounts: React.FC = () => {
       direction: editingRule.direction || TransactionType.OUT
     };
     const updated = editingRule.id ? rules.map(r => r.id === editingRule.id ? newRule : r) : [...rules, newRule];
-    StorageService.saveRules(updated); loadData(); setIsRuleModalOpen(false); setEditingRule(null);
+    await StorageService.saveRules(updated); loadData(); setIsRuleModalOpen(false); setEditingRule(null);
   };
 
   const getBalance = (accId: string) => (monthlyBalances.find(m => m.accountId === accId && m.month === currentMonth && m.year === currentYear)?.amount || 0);
@@ -139,7 +149,8 @@ export const Accounts: React.FC = () => {
                 <div key={acc.id} className="bg-fin-card p-8 rounded-3xl border border-fin-border flex flex-col justify-between group relative overflow-hidden">
                     <div className="absolute top-4 right-4 flex gap-1 opacity-0 group-hover:opacity-100 transition-all">
                         <button onClick={() => { setEditingAccount(acc); setIsAccModalOpen(true); }} className="p-2 text-fin-muted hover:text-brand bg-fin-bg rounded-lg"><Edit2 size={14} /></button>
-                        <button onClick={() => { if(confirm('¿Borrar?')) { StorageService.deleteAccount(acc.id); loadData(); } }} className="p-2 text-fin-muted hover:text-red-500 bg-fin-bg rounded-lg"><Trash2 size={14} /></button>
+                        {/* Fixed: Use async and await for storage operation */}
+                        <button onClick={async () => { if(confirm('¿Borrar?')) { await StorageService.deleteAccount(acc.id); loadData(); } }} className="p-2 text-fin-muted hover:text-red-500 bg-fin-bg rounded-lg"><Trash2 size={14} /></button>
                     </div>
                     <div className="flex items-start gap-4 mb-6">
                         <div className="p-3 rounded-xl bg-fin-bg text-brand border border-fin-border"><Wallet size={20} /></div>
@@ -185,7 +196,8 @@ export const Accounts: React.FC = () => {
                         </div>
                         <div className="flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
                             <button onClick={() => { setEditingRule(rule); setIsRuleModalOpen(true); }} className="p-2 text-fin-muted hover:text-white"><Edit2 size={14}/></button>
-                            <button onClick={() => { if(confirm('¿Borrar regla?')) { const u = rules.filter(r => r.id !== rule.id); StorageService.saveRules(u); loadData(); } }} className="p-2 text-fin-muted hover:text-red-500"><Trash2 size={14}/></button>
+                            {/* Fixed: Added async keyword to allow await within the event handler */}
+                            <button onClick={async () => { if(confirm('¿Borrar regla?')) { const u = rules.filter(r => r.id !== rule.id); await StorageService.saveRules(u); loadData(); } }} className="p-2 text-fin-muted hover:text-red-500"><Trash2 size={14}/></button>
                         </div>
                     </div>
                 ))}

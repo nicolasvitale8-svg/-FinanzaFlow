@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { StorageService } from '../services/storageService';
 import { Jar, Account } from '../types';
@@ -11,16 +12,26 @@ export const Jars: React.FC = () => {
   const [newJar, setNewJar] = useState<Partial<Jar>>({ annualRate: 40 });
 
   useEffect(() => {
-    setJars(StorageService.getJars());
-    setAccounts(StorageService.getAccounts());
+    // Fixed: Wrapped data loading in async function to correctly await promises
+    const loadData = async () => {
+      const [j, a] = await Promise.all([
+        StorageService.getJars(),
+        StorageService.getAccounts()
+      ]);
+      setJars(j);
+      setAccounts(a);
+    };
+    loadData();
   }, []);
 
-  const handleAdd = (e: React.FormEvent) => {
+  // Fixed: Marked handler as async and added await for storage operation
+  const handleAdd = async (e: React.FormEvent) => {
     e.preventDefault();
-    if(!newJar.name || !newJar.principal || !newJar.startDate || !newJar.endDate) return;
-    const jar: Jar = { id: crypto.randomUUID(), accountId: newJar.accountId!, name: newJar.name, principal: Number(newJar.principal), annualRate: Number(newJar.annualRate), startDate: newJar.startDate, endDate: newJar.endDate };
+    if(!newJar.name || !newJar.principal || !newJar.startDate || !newJar.endDate || !newJar.accountId) return;
+    const jar: Jar = { id: crypto.randomUUID(), accountId: newJar.accountId, name: newJar.name, principal: Number(newJar.principal), annualRate: Number(newJar.annualRate), startDate: newJar.startDate, endDate: newJar.endDate };
     const updated = [...jars, jar];
-    setJars(updated); StorageService.saveJars(updated);
+    setJars(updated); 
+    await StorageService.saveJars(updated);
     setIsAdding(false); setNewJar({ annualRate: 40 });
   };
 
@@ -128,7 +139,8 @@ export const Jars: React.FC = () => {
                        <span>{new Date(jar.endDate).toLocaleDateString()}</span>
                     </div>
                     
-                    <button onClick={() => { if(confirm('Eliminar frasco?')) { const u = jars.filter(j => j.id !== jar.id); setJars(u); StorageService.saveJars(u); }}} className="absolute bottom-8 right-8 text-fin-muted hover:text-red-500 opacity-20 group-hover:opacity-100 transition-opacity">
+                    {/* Fixed: Use async handler and await storage operation */}
+                    <button onClick={async () => { if(confirm('Eliminar frasco?')) { const u = jars.filter(j => j.id !== jar.id); setJars(u); await StorageService.saveJars(u); }}} className="absolute bottom-8 right-8 text-fin-muted hover:text-red-500 opacity-20 group-hover:opacity-100 transition-opacity">
                        <Trash2 size={16} />
                     </button>
                  </div>

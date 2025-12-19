@@ -4,8 +4,11 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>FinanzaFlow</title>
+    <title>FinanzaFlow | Google Drive Sync</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google API Loader -->
+    <script src="https://accounts.google.com/gsi/client" async defer></script>
+    <script src="https://apis.google.com/js/api.js" async defer></script>
     <script>
       tailwind.config = {
         darkMode: 'class',
@@ -15,25 +18,28 @@
               brand: {
                 DEFAULT: '#3B82F6',
                 hover: '#2563EB',
-                glow: 'rgba(59, 130, 246, 0.15)',
+                glow: 'rgba(59, 130, 246, 0.25)',
               },
               fin: {
-                bg: '#0A0F1A',
-                card: '#141C2F',
-                border: '#1F2937',
+                bg: '#050810',
+                card: '#0F172A',
+                border: '#1E293B',
                 text: '#F8FAFC',
-                muted: '#94A3B8',
+                muted: '#64748B',
               }
             },
             borderRadius: {
               '2xl': '20px',
               '3xl': '28px',
+            },
+            animation: {
+              'pulse-slow': 'pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+              'spin-slow': 'spin 3s linear infinite',
             }
           }
         }
       }
     </script>
-    <script src='https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js'></script>
   <script type="importmap">
 {
   "imports": {
@@ -42,33 +48,41 @@
     "lucide-react": "https://aistudiocdn.com/lucide-react@^0.555.0",
     "react-dom/": "https://aistudiocdn.com/react-dom@^19.2.0/",
     "recharts": "https://aistudiocdn.com/recharts@^3.5.1",
-    "react-router-dom": "https://aistudiocdn.com/react-router-dom@^7.9.6"
+    "react-router-dom": "https://aistudiocdn.com/react-router-dom@^7.9.6",
+    "@google/genai": "https://esm.run/@google/genai",
+    "@supabase/supabase-js": "https://esm.run/@supabase/supabase-js"
   }
 }
 </script>
 <style>
-  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+  @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
   body { 
-    background-color: #0A0F1A; 
+    background-color: #050810; 
     color: #F8FAFC; 
-    font-family: 'Inter', sans-serif;
+    font-family: 'Plus Jakarta Sans', sans-serif;
     -webkit-font-smoothing: antialiased;
   }
-  .glass { background: rgba(20, 28, 47, 0.7); backdrop-filter: blur(12px); }
-  .card-glow:hover { border-color: #3B82F6; box-shadow: 0 0 20px rgba(59, 130, 246, 0.1); }
+  .glass { background: rgba(15, 23, 42, 0.7); backdrop-filter: blur(12px); border: 1px solid rgba(255,255,255,0.05); }
+  .card-glow:hover { border-color: rgba(59, 130, 246, 0.5); box-shadow: 0 0 30px rgba(59, 130, 246, 0.15); }
   .tabular-nums { font-variant-numeric: tabular-nums; }
-  .animate-fade-in { animation: fadeIn 0.4s cubic-bezier(0.16, 1, 0.3, 1); }
-  @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+  .animate-fade-in { animation: fadeIn 0.5s cubic-bezier(0.16, 1, 0.3, 1); }
+  @keyframes fadeIn { from { opacity: 0; transform: translateY(15px); } to { opacity: 1; transform: translateY(0); } }
   
-  @keyframes scan {
-    0% { top: 0; opacity: 0; }
-    10% { opacity: 1; }
-    90% { opacity: 1; }
-    100% { top: 100%; opacity: 0; }
+  @keyframes scan-line {
+    0% { transform: translateY(-100%); opacity: 0; }
+    50% { opacity: 1; }
+    100% { transform: translateY(400px); opacity: 0; }
   }
 
-  ::-webkit-scrollbar { width: 6px; }
-  ::-webkit-scrollbar-thumb { background: #1F2937; border-radius: 10px; }
+  .scanning-line {
+    height: 2px;
+    background: linear-gradient(90deg, transparent, #3B82F6, transparent);
+    box-shadow: 0 0 15px #3B82F6;
+    animation: scan-line 2.5s infinite linear;
+  }
+
+  ::-webkit-scrollbar { width: 4px; }
+  ::-webkit-scrollbar-thumb { background: #1E293B; border-radius: 10px; }
 </style>
 </head>
   <body>

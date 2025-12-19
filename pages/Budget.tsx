@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { StorageService } from '../services/storageService';
 import { BudgetItem, Category, SubCategory, Transaction, TransactionType } from '../types';
@@ -18,11 +19,18 @@ export const Budget: React.FC = () => {
 
   useEffect(() => { loadData(); }, []);
 
-  const loadData = () => {
-    setBudgetItems(StorageService.getBudgetItems());
-    setTransactions(StorageService.getTransactions());
-    setCategories(StorageService.getCategories());
-    setSubCategories(StorageService.getSubCategories());
+  // Fixed loadData to correctly await async StorageService calls
+  const loadData = async () => {
+    const [bi, t, c, sc] = await Promise.all([
+      StorageService.getBudgetItems(),
+      StorageService.getTransactions(),
+      StorageService.getCategories(),
+      StorageService.getSubCategories()
+    ]);
+    setBudgetItems(bi);
+    setTransactions(t);
+    setCategories(c);
+    setSubCategories(sc);
   };
 
   const changeMonth = (increment: number) => {
@@ -31,17 +39,18 @@ export const Budget: React.FC = () => {
     setCurrentYear(newDate.getFullYear());
   };
 
-  const handleSaveItem = (e: React.FormEvent) => {
+  // Fixed: Marked as async and added await for storage operation
+  const handleSaveItem = async (e: React.FormEvent) => {
     e.preventDefault();
-    if(!newItem.categoryId || !newItem.plannedAmount || !newItem.label) return;
+    if(!newItem.label || !newItem.categoryId || !newItem.plannedAmount) return;
     let updatedItems = [...budgetItems];
     if (editingId) {
         updatedItems = updatedItems.map(item => item.id === editingId ? { ...item, label: newItem.label!, categoryId: newItem.categoryId!, subCategoryId: newItem.subCategoryId, type: newItem.type!, plannedAmount: Number(newItem.plannedAmount), plannedDate: Number(newItem.plannedDate) || 1 } : item);
     } else {
-        updatedItems.push({ id: crypto.randomUUID(), year: currentYear, month: currentMonth, label: newItem.label, categoryId: newItem.categoryId, subCategoryId: newItem.subCategoryId, type: newItem.type!, plannedAmount: Number(newItem.plannedAmount), plannedDate: Number(newItem.plannedDate) || 1 });
+        updatedItems.push({ id: crypto.randomUUID(), year: currentYear, month: currentMonth, label: newItem.label!, categoryId: newItem.categoryId!, subCategoryId: newItem.subCategoryId, type: newItem.type!, plannedAmount: Number(newItem.plannedAmount), plannedDate: Number(newItem.plannedDate) || 1 });
     }
     setBudgetItems(updatedItems);
-    StorageService.saveBudgetItems(updatedItems);
+    await StorageService.saveBudgetItems(updatedItems);
     setIsAdding(false); setEditingId(null); setNewItem({ type: TransactionType.OUT, plannedAmount: 0, label: '' });
   };
 
@@ -113,7 +122,8 @@ export const Budget: React.FC = () => {
                     <td className="px-8 py-5 text-right">
                       <div className="flex justify-end gap-3 opacity-20 hover:opacity-100 transition-opacity">
                          <button onClick={() => { setEditingId(item.id); setNewItem(item); setIsAdding(true); }} className="text-fin-text hover:text-brand"><Pencil size={14}/></button>
-                         <button onClick={() => { if(confirm('Eliminar ítem?')) { const u = budgetItems.filter(i => i.id !== item.id); setBudgetItems(u); StorageService.saveBudgetItems(u); } }} className="text-fin-text hover:text-red-500"><Trash2 size={14}/></button>
+                         {/* Fixed: Use async handler and await storage operation */}
+                         <button onClick={async () => { if(confirm('Eliminar ítem?')) { const u = budgetItems.filter(i => i.id !== item.id); setBudgetItems(u); await StorageService.saveBudgetItems(u); } }} className="text-fin-text hover:text-red-500"><Trash2 size={14}/></button>
                       </div>
                     </td>
                   </tr>
