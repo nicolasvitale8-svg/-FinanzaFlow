@@ -5,7 +5,8 @@ import { GoogleDriveService } from '../services/googleDriveService';
 import { 
   Download, Upload, Database, AlertCircle, 
   Cloud, Smartphone, Monitor, RefreshCw, ChevronRight, 
-  ExternalLink, Terminal, CheckCircle2, LogOut, Loader2, Key, Info, Globe
+  ExternalLink, Terminal, CheckCircle2, LogOut, Loader2, Key, Info, Globe,
+  UserPlus, Copy, Code, Shield
 } from 'lucide-react';
 
 export const SettingsPage: React.FC = () => {
@@ -51,7 +52,7 @@ export const SettingsPage: React.FC = () => {
       });
       client.requestAccessToken();
     } catch (e) {
-      alert("Error al iniciar sesión. Verifica que el Client ID sea correcto y que tu dominio esté autorizado en Google Cloud Console.");
+      alert("Error al iniciar sesión. Verifica que el Client ID sea correcto.");
     }
   };
 
@@ -73,13 +74,13 @@ export const SettingsPage: React.FC = () => {
   };
 
   return (
-    <div className="max-w-4xl mx-auto space-y-10 animate-fade-in pb-24">
+    <div className="max-w-4xl mx-auto space-y-10 animate-fade-in pb-24 text-fin-text">
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
         <div className="space-y-1">
           <div className="flex items-center gap-2 text-brand text-[10px] font-black uppercase tracking-[0.4em]">
-            <Terminal size={12} /> Cloud Infrastructure
+            <Terminal size={12} /> System Management
           </div>
-          <h1 className="text-5xl font-extrabold text-white tracking-tighter">Despliegue</h1>
+          <h1 className="text-5xl font-extrabold text-white tracking-tighter">Ajustes</h1>
         </div>
         
         <div className={`px-6 py-4 rounded-3xl flex items-center gap-4 border-2 transition-all ${
@@ -90,109 +91,133 @@ export const SettingsPage: React.FC = () => {
            <div className="p-2 rounded-lg bg-fin-bg border border-white/10"><Globe size={14}/></div>
            <div>
              <span className="text-[10px] font-black uppercase tracking-widest block leading-none">
-               {googleUser ? 'Listo para el Celular' : 'Solo en esta PC'}
+               {googleUser ? 'Cloud Active' : 'Offline Mode'}
              </span>
              <span className="text-[9px] font-bold opacity-60">
-               {googleUser ? 'Datos en la nube activados' : 'Configura Drive para portabilidad'}
+               {googleUser ? 'Conectado a Google Drive' : 'Datos locales únicamente'}
              </span>
            </div>
         </div>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        
-        {/* Google Drive Configuration */}
-        <div className="lg:col-span-2 space-y-6">
-           <div className="bg-fin-card p-10 rounded-[40px] border border-fin-border shadow-2xl space-y-10">
+        <div className="lg:col-span-2 space-y-8">
+           {/* Google Drive Card */}
+           <div className="bg-fin-card p-10 rounded-[40px] border border-fin-border shadow-2xl space-y-10 relative overflow-hidden">
+              <div className="flex items-center gap-4">
+                <div className="w-10 h-10 bg-brand/10 text-brand rounded-xl flex items-center justify-center"><Cloud size={20} /></div>
+                <h3 className="text-xl font-black text-white uppercase tracking-tight">Cloud Personal (Drive)</h3>
+              </div>
               
-              {/* Step 1: Client ID */}
               <div className="space-y-6">
-                <div className="flex items-center gap-4">
-                  <div className="w-10 h-10 bg-brand/10 text-brand rounded-xl flex items-center justify-center"><Key size={20} /></div>
-                  <h3 className="text-lg font-black text-white uppercase tracking-tight">1. Llave de Google (Client ID)</h3>
-                </div>
-                
                 <div className="flex gap-4">
                   <input 
                     type="text" 
                     value={clientId}
                     onChange={e => setClientId(e.target.value)}
-                    placeholder="XXXXXXXX.apps.googleusercontent.com"
+                    placeholder="Google Client ID..."
                     className="flex-1 bg-fin-bg border border-fin-border rounded-2xl px-6 py-4 text-xs text-white focus:border-brand outline-none font-mono"
                   />
-                  <button 
-                    onClick={saveClientId}
-                    className={`px-8 rounded-2xl font-black text-[10px] uppercase tracking-widest transition-all ${
-                      isSaved ? 'bg-emerald-500 text-white' : 'bg-brand text-white hover:bg-brand-hover'
-                    }`}
-                  >
-                    {isSaved ? 'Guardado' : 'Guardar'}
+                  <button onClick={saveClientId} className={`px-8 rounded-2xl font-black text-[10px] uppercase tracking-widest transition-all ${isSaved ? 'bg-emerald-500 text-white' : 'bg-brand text-white hover:bg-brand-hover'}`}>
+                    {isSaved ? 'Guardado' : 'Guardar ID'}
                   </button>
-                </div>
-                <p className="text-[10px] text-fin-muted leading-relaxed flex items-center gap-2">
-                  <Info size={12} /> Consigue esta llave gratis en la <a href="https://console.cloud.google.com" target="_blank" className="text-brand hover:underline">Google Cloud Console</a>.
-                </p>
-              </div>
-
-              {/* Step 2: Connection */}
-              <div className="space-y-6 pt-6 border-t border-fin-border/30">
-                <div className="flex items-center gap-4">
-                  <div className="w-10 h-10 bg-brand/10 text-brand rounded-xl flex items-center justify-center"><Cloud size={20} /></div>
-                  <h3 className="text-lg font-black text-white uppercase tracking-tight">2. Conexión de Datos</h3>
                 </div>
 
                 {!googleUser ? (
-                  <button 
-                    onClick={handleGoogleLogin}
-                    disabled={!clientId}
-                    className="w-full py-5 bg-white text-black rounded-2xl font-black text-xs uppercase tracking-[0.2em] shadow-xl hover:bg-fin-text transition-all flex items-center justify-center gap-3 disabled:opacity-30"
-                  >
+                  <button onClick={handleGoogleLogin} className="w-full py-5 bg-white text-black rounded-2xl font-black text-xs uppercase tracking-[0.2em] shadow-xl hover:bg-fin-text transition-all flex items-center justify-center gap-3">
                     <img src="https://upload.wikimedia.org/wikipedia/commons/c/c1/Google_%22G%22_logo.svg" className="w-4 h-4" />
-                    Iniciar Sesión con Google Drive
+                    Vincular mi Google Drive
                   </button>
                 ) : (
-                  <div className="space-y-4">
-                     <div className="flex items-center justify-between bg-emerald-500/5 border border-emerald-500/20 p-6 rounded-3xl">
-                        <div className="flex items-center gap-3">
-                           <CheckCircle2 className="text-emerald-500" size={18} />
-                           <span className="text-xs font-black text-white uppercase tracking-widest">Estado: Nube Activa</span>
-                        </div>
-                        <button onClick={syncNow} disabled={isGoogleSyncing} className="flex items-center gap-2 px-4 py-2 bg-emerald-500/10 text-emerald-500 rounded-xl text-[9px] font-black uppercase tracking-widest">
-                          {isGoogleSyncing ? <Loader2 className="animate-spin" size={12} /> : <RefreshCw size={12} />} Force Sync
-                        </button>
-                     </div>
-                     <button 
-                       onClick={handleLogout}
-                       className="w-full py-4 text-fin-muted hover:text-rose-500 text-[10px] font-black uppercase tracking-widest transition-all"
-                     >
-                       Desconectar Cuenta
+                  <div className="flex gap-4">
+                     <button onClick={syncNow} disabled={isGoogleSyncing} className="flex-1 py-4 bg-emerald-500/10 border border-emerald-500/20 text-emerald-500 rounded-2xl font-black text-[10px] uppercase tracking-widest flex items-center justify-center gap-2">
+                        {isGoogleSyncing ? <Loader2 className="animate-spin" size={14} /> : <RefreshCw size={14} />} Sincronizar Ahora
+                     </button>
+                     <button onClick={handleLogout} className="px-6 py-4 bg-rose-500/10 border border-rose-500/20 text-rose-500 rounded-2xl">
+                        <LogOut size={18} />
                      </button>
                   </div>
                 )}
               </div>
            </div>
+
+           {/* Traspaso de Propiedad Section */}
+           <div className="bg-brand/5 border border-brand/20 p-10 rounded-[40px] shadow-2xl space-y-8 relative overflow-hidden">
+              <div className="absolute top-0 right-0 p-8 opacity-10">
+                 <UserPlus size={120} />
+              </div>
+              <div className="flex items-center gap-4">
+                <div className="w-10 h-10 bg-brand text-white rounded-xl flex items-center justify-center shadow-lg shadow-brand/20"><UserPlus size={20} /></div>
+                <h3 className="text-xl font-black text-white uppercase tracking-tight">Traspaso de Propiedad</h3>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-8 relative z-10">
+                <div className="space-y-4">
+                   <p className="text-xs font-bold text-white/80">Pasos para entregar la app a otro usuario:</p>
+                   <ul className="space-y-3">
+                      {[
+                        "Entrega el código fuente (ZIP o GitHub).",
+                        "El nuevo dueño debe poner su propio API_KEY.",
+                        "Debe crear su propio Client ID en Google Cloud.",
+                        "Importar el respaldo de datos que generes aquí."
+                      ].map((step, i) => (
+                        <li key={i} className="flex gap-3 text-[10px] text-fin-muted font-medium">
+                           <span className="text-brand font-black">{i+1}.</span> {step}
+                        </li>
+                      ))}
+                   </ul>
+                </div>
+                <div className="bg-fin-bg/40 p-6 rounded-3xl border border-white/5 space-y-4">
+                   <p className="text-[10px] font-black uppercase text-white tracking-widest">Kit de Traspaso</p>
+                   <button 
+                     onClick={async () => {
+                       const data = await StorageService.exportAllData();
+                       const blob = new Blob([data], {type: 'application/json'});
+                       const url = URL.createObjectURL(blob);
+                       const a = document.createElement('a');
+                       a.href = url; a.download = 'finanzaflow_handover_data.json'; a.click();
+                     }}
+                     className="w-full flex items-center justify-between p-4 bg-brand/10 hover:bg-brand/20 border border-brand/20 rounded-2xl transition-all"
+                   >
+                      <span className="text-[10px] font-black text-brand uppercase">Exportar Datos Finales</span>
+                      <Download size={14} className="text-brand" />
+                   </button>
+                   <div className="p-4 bg-white/5 rounded-2xl flex items-center justify-between border border-white/5 opacity-50 cursor-not-allowed">
+                      <span className="text-[10px] font-black text-white uppercase">Generar ZIP de Código</span>
+                      <Code size={14} />
+                   </div>
+                </div>
+              </div>
+           </div>
         </div>
 
-        {/* Sidebar: Guía Rápida */}
+        {/* Sidebar */}
         <div className="space-y-6">
+           <div className="bg-fin-card p-8 rounded-[32px] border border-fin-border shadow-2xl space-y-6">
+              <h3 className="text-xs font-black uppercase tracking-widest text-fin-muted">Respaldo Local</h3>
+              <div className="space-y-3">
+                 <button onClick={() => fileInputRef.current?.click()} className="w-full py-4 bg-fin-bg border border-fin-border hover:border-brand transition-all rounded-2xl flex items-center justify-center gap-3 text-[10px] font-black uppercase tracking-widest">
+                    <Upload size={14} className="text-brand" /> Importar JSON
+                 </button>
+                 <input type="file" ref={fileInputRef} className="hidden" accept=".json" onChange={async (e) => {
+                    const file = e.target.files?.[0];
+                    if (file) {
+                      const text = await file.text();
+                      await StorageService.importAllData(text);
+                      window.location.reload();
+                    }
+                 }} />
+              </div>
+           </div>
+
            <div className="bg-fin-card p-8 rounded-[32px] border border-fin-border shadow-2xl">
-              <h3 className="text-xs font-black uppercase tracking-widest text-brand mb-6">Guía de Despliegue</h3>
-              <ul className="space-y-6">
-                 {[
-                   { t: "Despliega la Web", d: "Sube este código a Vercel o Netlify (es gratis)." },
-                   { t: "Configura Google", d: "Crea un proyecto en Google Cloud y habilita 'Google Drive API'." },
-                   { t: "Autoriza la URL", d: "Añade la URL de tu app en 'Authorized JavaScript origins'." },
-                   { t: "Pega el Client ID", d: "Pon la llave aquí y pulsa Guardar." }
-                 ].map((step, i) => (
-                   <li key={i} className="flex gap-4">
-                      <span className="text-xl font-black text-brand/20">{i+1}</span>
-                      <div>
-                        <p className="text-[10px] font-black text-white uppercase">{step.t}</p>
-                        <p className="text-[10px] text-fin-muted mt-1 leading-tight">{step.d}</p>
-                      </div>
-                   </li>
-                 ))}
-              </ul>
+              <div className="flex items-center gap-3 mb-6">
+                 <Shield className="text-emerald-500" size={16} />
+                 <h3 className="text-xs font-black uppercase tracking-widest text-fin-text">Seguridad</h3>
+              </div>
+              <p className="text-[10px] text-fin-muted font-medium leading-relaxed">
+                Tus datos nunca tocan nuestros servidores. Se mueven directamente de tu navegador a tu cuenta personal de Google Drive.
+              </p>
            </div>
         </div>
       </div>
